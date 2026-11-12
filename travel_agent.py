@@ -1,11 +1,8 @@
 import os
 import streamlit as st
 from langchain_google_genai import ChatGoogleGenerativeAI
-# Import from langchain.agents.format_scratchpad.tools instead of langchain.agents
-from langchain.agents import AgentExecutor
-from langchain.agents.format_scratchpad.tools import format_to_tool_messages
-from langchain.agents.output_parsers.tools import ToolsAgentOutputParser
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate
 from agent_tools import travel_tools
 
 # Pull the API key securely from Streamlit Secrets
@@ -13,9 +10,6 @@ os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 
 # Initialize the Gemini LLM
 llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
-
-# Bind tools to LLM
-llm_with_tools = llm.bind_tools(travel_tools)
 
 prompt = ChatPromptTemplate.from_messages([
     ("system", """You are an expert Indian travel planning assistant. 
@@ -54,18 +48,11 @@ prompt = ChatPromptTemplate.from_messages([
     **Total Cost: ₹[Cost]**
     """),
     ("human", "{input}"),
-    MessagesPlaceholder(variable_name="agent_scratchpad"),
+    ("placeholder", "{agent_scratchpad}"),
 ])
 
-# Manually construct the tool calling agent (this avoids the import error)
-agent = (
-    {
-        "input": lambda x: x["input"],
-        "agent_scratchpad": lambda x: format_to_tool_messages(x["intermediate_steps"]),
-    }
-    | prompt
-    | llm_with_tools
-    | ToolsAgentOutputParser()
-)
+# Bind the tools to the agent
+agent = create_tool_calling_agent(llm, travel_tools, prompt)
 
+# Create the AgentExecutor which runs the agent loop
 travel_agent_executor = AgentExecutor(agent=agent, tools=travel_tools, verbose=True)
