@@ -1,13 +1,16 @@
 import os
-from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_tool_calling_agent
+import streamlit as st
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.agents import create_tool_calling_agent
+from langchain.agents.agent_executor import AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate
 from agent_tools import travel_tools
 
-# Set your OpenAI API Key
-os.environ["OPENAI_API_KEY"] = "your-openai-api-key-here"
+# Set your Gemini API Key
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+# Initialize the Gemini LLM
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
 
 prompt = ChatPromptTemplate.from_messages([
     ("system", """You are an expert Indian travel planning assistant. 
