@@ -8,8 +8,8 @@ from agent_tools import travel_tools
 # Pull the API key securely from Streamlit Secrets
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 
-# Initialize the Gemini LLM
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
+# Initialize the newer Gemini LLM (replacing the deprecated 1.5-flash)
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
 
 prompt = ChatPromptTemplate.from_messages([
     ("system", """You are an expert Indian travel planning assistant. 
